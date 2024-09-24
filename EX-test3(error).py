@@ -1,5 +1,5 @@
 import numpy as np
-from pyqtgraph.Qt import QtGui, QtCore
+from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 import struct
 import pyaudio
@@ -13,8 +13,8 @@ class AudioStream(object):
         # pyqtgraph stuff
         pg.setConfigOptions(antialias=True)
         self.traces = dict()
-        self.app = QtGui.QApplication(sys.argv)
-        self.win = pg.GraphicsWindow(title='Spectrum Analyzer')
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.win = pg.PlotWidget(title='Spectrum Analyzer')
         self.win.setWindowTitle('Spectrum Analyzer')
         self.win.setGeometry(5, 115, 1910, 1070)
 
@@ -33,12 +33,6 @@ class AudioStream(object):
         sp_xaxis = pg.AxisItem(orientation='bottom')
         sp_xaxis.setTicks([sp_xlabels])
 
-        self.waveform = self.win.addPlot(
-            title='WAVEFORM', row=1, col=1, axisItems={'bottom': wf_xaxis, 'left': wf_yaxis},
-        )
-        self.spectrum = self.win.addPlot(
-            title='SPECTRUM', row=2, col=1, axisItems={'bottom': sp_xaxis},
-        )
 
         # pyaudio stuff
         self.FORMAT = pyaudio.paInt16
@@ -82,7 +76,7 @@ class AudioStream(object):
         wf_data = self.stream.read(self.CHUNK)
         wf_data = struct.unpack(str(2 * self.CHUNK) + 'B', wf_data)
         wf_data = np.array(wf_data, dtype='b')[::2] + 128
-        self.set_plotdata(name='waveform', data_x=self.x, data_y=wf_data,)
+        self.set_plotdata(name='waveform', data_x=self.x, data_y=wf_data)
 
         sp_data = fft(np.array(wf_data, dtype='int8') - 128)
         sp_data = np.abs(sp_data[0:int(self.CHUNK / 2)]
